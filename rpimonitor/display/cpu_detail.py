@@ -55,16 +55,16 @@ def draw_signal_strength_graph(device, location, value, bar_count=5, unit_size=(
     with canvas(device) as draw:
         for bar in range(bar_count):
             min_bar_value, max_bar_value = bar / bar_count, (bar + 1) / bar_count
-            if value > max_bar_value:
+            if value >= max_bar_value:
                 bar_value = 1
-            elif value < min_bar_value:
+            elif value <= min_bar_value:
                 bar_value = 0
             else:
                 bar_value = (value - min_bar_value) * bar_count
 
             total_bar_height = (bar + 1) * unit_size[1] + 2 * border_thickness
             left = bar * (2 * border_thickness + unit_size[0]) + bar * padding
-            right = left + 2 * border_thickness + unit_size[0]
+            right = left + 2 * border_thickness + unit_size[0] - 1
             bar_top = total_height - total_bar_height
             bar_rectangle = (left, bar_top, right, total_height)
             if bar_value == 0:
