@@ -1,7 +1,5 @@
 """Thermal monitoring"""
 
-import os
-
 class Temp(object):
     """Class for reading /sys/class/thermal/thermal_zone0/temp"""
 
