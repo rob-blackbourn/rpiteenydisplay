@@ -1,6 +1,8 @@
 """Routines to get information from /proc/stat on a Raspberry Pi 3 B+ running Raspbian Stretch
 """
 
+import aiofiles
+
 class Cpu(object):
     """ Represents the cpu data from /proc/stat
     """
@@ -89,6 +91,13 @@ class Stat(object):
         """Takes a reading from /proc/stat and returns the parsed data"""
         with open('/proc/stat') as fp:
             return cls.parse(fp.readlines())
+
+    @classmethod
+    async def sample_async(cls):
+        """Takes a reading from /proc/stat and returns the parsed data"""
+        async with aiofiles.open('/proc/stat') as file_ptr:
+            lines = await file_ptr.readlines()
+            return cls.parse(lines)
 
 if __name__ == "__main__":
     stat = Stat.sample()
