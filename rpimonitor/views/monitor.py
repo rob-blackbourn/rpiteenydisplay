@@ -13,6 +13,7 @@ from rpimonitor.monitor.meminfo import MemInfo
 from rpimonitor.monitor.thermal import Temp
 
 from rpimonitor.display.cpu_detail import draw_cpu_detail_text
+from rpimonitor.display.summary import draw_summary_text
 
 class Monitor(object):
     """Integrates with aiohttp to provide a polling background monitor"""
@@ -26,6 +27,7 @@ class Monitor(object):
         self.meminfo = None
         self.temp = None
         self.condition = asyncio.Condition()
+        self.render_method = "summary"
         serial = i2c(port=1, address=0x3C)
         self.device = ssd1306(serial, width=128, height=32)
         self.font = ImageFont.truetype('DejaVuSans.ttf', 12)        
@@ -34,7 +36,10 @@ class Monitor(object):
 
     def render(self):
         """Render the status"""
-        draw_cpu_detail_text(self.device, self.font, self.cpu_usage, self.core_usages)
+        if self.render_method == "cpu_detail":
+            draw_cpu_detail_text(self.device, self.font, self.cpu_usage, self.core_usages)
+        else:
+            draw_summary_text(self.device, self.font, self.cpu_usage, self.meminfo.usage, self.temp.cpu_temp)
         
     async def sample_async(self):
         self.prev_stat = self.stat
@@ -113,3 +118,7 @@ async def index_ws(request):
             await ws.send_json(data)
 
     return ws
+
+async def change_display(request):
+    request.app['monitor'].render_method = request.query.getone('method', 'summary')
+    return web.Response()

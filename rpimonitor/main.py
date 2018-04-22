@@ -6,7 +6,7 @@ from aiohttp import web
 import jinja2
 import aiohttp_jinja2
 
-from rpimonitor.views.monitor import Monitor, index, index_ws
+from rpimonitor.views.monitor import Monitor, index, index_ws, change_display
 
 PROJECT_ROOT = os.path.dirname(__file__)
 
@@ -17,5 +17,6 @@ def main(args):
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('rpimonitor', 'templates'))
     app.router.add_get('/', index)
     app.router.add_get('/ws', index_ws)
+    app.router.add_get('/view', change_display)
     app['monitor'] = Monitor(app)
     web.run_app(app, host='127.0.0.1', port=8080)
