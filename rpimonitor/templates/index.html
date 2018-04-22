@@ -9,11 +9,54 @@
         <title>Raspbery Pi Monitor</title>
     </head>
     <body>
-        <h1>I love Ann-Marie</h1>
+         
+        <div class="container">
+            <h1>Raspberry Pi Monitor</h1>
+
+            <h2>CPU</h2>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-right">Total</th>
+                        <th class="text-right">0</th>
+                        <th class="text-right">1</th>
+                        <th class="text-right">2</th>
+                        <th class="text-right">3</th>
+                    </tr>
+                <thead>
+                <tbody>
+                    <tr>
+                        <td id="cpu_usage" class="text-right" />
+                        <td id="core0_usage" class="text-right" />
+                        <td id="core1_usage" class="text-right" />
+                        <td id="core2_usage" class="text-right" />
+                        <td id="core3_usage" class="text-right" />
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
 
         <script src="/node_modules/jquery/dist/jquery.slim.min.js"></script>
         <script src="/node_modules/popper.js/dist/umd/popper.min.js"></script>
         <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
+        <script>
+            $(function() {
+                var url = 'ws://' + window.location.host + "/ws";
+                conn = new WebSocket(url);
+                conn.onmessage = function(e) {
+                    var data = JSON.parse(e.data);
+                    $('#cpu_usage').html(data['cpu_usage'].toFixed(2) + "%")
+                    $('#core0_usage').html(data['core_usages'][0].toFixed(2) + "%")
+                    $('#core1_usage').html(data['core_usages'][1].toFixed(2) + "%")
+                    $('#core2_usage').html(data['core_usages'][2].toFixed(2) + "%")
+                    $('#core3_usage').html(data['core_usages'][3].toFixed(2) + "%")
+                };
+
+            });
+        </script>
     </body>
 </html>
