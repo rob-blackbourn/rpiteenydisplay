@@ -121,4 +121,4 @@ async def index_ws(request):
 
 async def change_display(request):
     request.app['monitor'].render_method = request.query.getone('method', 'summary')
-    return web.Response()
+    return web.Response(text="OK")
