@@ -36,6 +36,39 @@
                 </tbody>
             </table>
 
+            <h2>Memory</h2>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-right">Total</th>
+                        <th class="text-right">Physical</th>
+                        <th class="text-right">Swap</th>
+                    </tr>
+                <thead>
+                <tbody>
+                    <tr>
+                        <td id="mem_usage" class="text-right" />
+                        <td id="physical_usage" class="text-right" />
+                        <td id="swap_usage" class="text-right" />
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Temperature</h2>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-right">CPU</th>
+                    </tr>
+                <thead>
+                <tbody>
+                    <tr>
+                        <td id="cpu_temp" class="text-right" />
+                    </tr>
+                </tbody>
+            </table>
 
         </div>
 
@@ -49,11 +82,18 @@
                 conn = new WebSocket(url);
                 conn.onmessage = function(e) {
                     var data = JSON.parse(e.data);
+
                     $('#cpu_usage').html(data['cpu_usage'].toFixed(2) + "%")
                     $('#core0_usage').html(data['core_usages'][0].toFixed(2) + "%")
                     $('#core1_usage').html(data['core_usages'][1].toFixed(2) + "%")
                     $('#core2_usage').html(data['core_usages'][2].toFixed(2) + "%")
                     $('#core3_usage').html(data['core_usages'][3].toFixed(2) + "%")
+
+                    $('#mem_usage').html(data['mem_usage'].toFixed(2) + "%")
+                    $('#physical_usage').html(data['physical_usage'].toFixed(2) + "%")
+                    $('#swap_usage').html(data['swap_usage'].toFixed(2) + "%")
+
+                    $('#cpu_temp').html(data['cpu_temp'].toFixed(2) + "&deg;C")
                 };
 
             });

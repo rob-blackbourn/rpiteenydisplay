@@ -9,6 +9,9 @@ from luma.oled.device import ssd1306
 from PIL import ImageFont
 
 from rpimonitor.monitor.stat import Stat
+from rpimonitor.monitor.meminfo import MemInfo
+from rpimonitor.monitor.thermal import Temp
+
 from rpimonitor.display.cpu_detail import draw_cpu_detail_text
 
 class Monitor(object):
@@ -20,6 +23,8 @@ class Monitor(object):
         self.background_task = None
         self.stat = None
         self.prev_stat = None
+        self.meminfo = None
+        self.temp = None
         self.condition = asyncio.Condition()
         serial = i2c(port=1, address=0x3C)
         self.device = ssd1306(serial, width=128, height=32)
@@ -31,16 +36,25 @@ class Monitor(object):
         """Render the status"""
         draw_cpu_detail_text(self.device, self.font, self.cpu_usage, self.core_usages)
         
+    async def sample_async(self):
+        self.prev_stat = self.stat
+        self.stat = await Stat.sample_async()
+
+        self.meminfo = await MemInfo.sample_async()
+
+        self.temp = await Temp.sample_async()
+        
     async def poll(self):
         """Poll the status"""
-        self.stat = await Stat.sample_async()
+        
+        await self.sample_async()
+
         try:
             while self.is_monitoring:
-                print("Monitoring")
                 await asyncio.sleep(self.poll_seconds)
 
-                self.prev_stat = self.stat
-                self.stat = await Stat.sample_async()
+                await self.sample_async()
+
                 with await self.condition:
                     self.condition.notify_all()
                 self.render()
@@ -84,16 +98,18 @@ async def index_ws(request):
     await ws.prepare(request)
 
     while not ws.closed:
-        print("Acquiring")
         with await monitor.condition:
-            print("Waiting")
             await monitor.condition.wait()
-            print("Received")
             cpu_usage = 100 * monitor.cpu_usage
             core_usages = [100 * usage for usage in monitor.core_usages]
-            data = {'cpu_usage': cpu_usage, 'core_usages': core_usages}
+            data = {
+                'cpu_usage': cpu_usage, 
+                'core_usages': core_usages,
+                'mem_usage': monitor.meminfo.usage * 100,
+                'physical_usage': monitor.meminfo.mem_usage * 100,
+                'swap_usage': monitor.meminfo.swap_usage * 100,
+                'cpu_temp': monitor.temp.cpu_temp
+            }
             await ws.send_json(data)
-
-    print('websocket connection closed')
 
     return ws

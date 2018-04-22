@@ -1,5 +1,7 @@
 """Process /proc/meminfo """
 
+import aiofiles
+
 class MemInfo(object):
     """Methods for interacting with /proc/meminfo"""
 
@@ -21,6 +23,13 @@ class MemInfo(object):
         """Takes a reading from /proc/stat and returns the parsed data"""
         with open('/proc/meminfo') as f:
             return cls.parse_lines(f.readlines())
+
+    @classmethod
+    async def sample_async(cls):
+        """Takes a reading from /proc/stat and returns the parsed data"""
+        async with aiofiles.open('/proc/meminfo') as file_ptr:
+            lines = await file_ptr.readlines()
+            return cls.parse_lines(lines)
 
     @property
     def total(self):
