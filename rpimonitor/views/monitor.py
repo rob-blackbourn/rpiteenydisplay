@@ -18,28 +18,32 @@ class Monitor(object):
         self.is_monitoring = True
         self.poll_seconds = poll_seconds
         self.background_task = None
+        self.stats = None
+        self.prev_stats = None
         serial = i2c(port=1, address=0x3C)
         self.device = ssd1306(serial, width=128, height=32)
         self.font = ImageFont.truetype('DejaVuSans.ttf', 12)        
         app.on_startup.append(self.on_startup)
         app.on_cleanup.append(self.on_cleanup)
 
-    def render(self, prev_cpu, cpu, prev_cores, cores):
-        calc_and_draw_cpu_detail_text(self.device, self.font, prev_cpu, cpu, prev_cores, cores)
+    def render(self):
+        """Render the status"""
+        calc_and_draw_cpu_detail_text(
+            self.device, self.font, 
+            self.prev_stats.cpu, self.stats.cpu,
+            self.prev_stats.cores, self.stats.cores)
         
     async def poll(self):
         """Poll the status"""
-        stats = await Stat.sample_async()
-        cpu, cores = stats.cpu, stats.cores        
+        self.stats = await Stat.sample_async()
         try:
             while self.is_monitoring:
                 print("Monitoring")
                 await asyncio.sleep(self.poll_seconds)
 
-                prev_cpu, prev_cores = cpu, cores
-                stats = await Stat.sample_async()
-                cpu, cores = stats.cpu, stats.cores
-                calc_and_draw_cpu_detail_text(self.device, self.font, prev_cpu, cpu, prev_cores, cores)
+                self.prev_stats = self.stats
+                self.stats = await Stat.sample_async()
+                self.render()
 
         except asyncio.CancelledError:
             pass
